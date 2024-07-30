@@ -1,0 +1,78 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id               Int                @id @default(autoincrement())
+  createdOn        DateTime
+  date             DateTime
+  name             String
+  coreTags         String[]
+  tags             String[]
+  QuestionInstance QuestionInstance[]
+}
+
+model Question {
+  id              Int        @id @default(autoincrement())
+  content         String
+  tags            String[]
+  answer          String
+  level           Int
+  isCoreQuestion  Boolean
+  reviewedBy      User[]
+  reviewComments  Comment[]
+  lastReviewed    DateTime
+  expectedMinutes Int?
+  userId          Int?
+  followUps       Question[] @relation("followUps")
+  parent          Question?  @relation("followUps", fields: [parentId], references: [id])
+  parentId        Int?
+}
+
+model Comment {
+  id                 String            @id @default(cuid())
+  author             User              @relation(fields: [userId], references: [id])
+  content            String
+  userId             Int
+  QuestionInstance   QuestionInstance? @relation(fields: [questionInstanceId], references: [id])
+  questionInstanceId Int?
+  Question           Question?         @relation(fields: [questionId], references: [id])
+  questionId         Int?
+  postedOn           DateTime
+}
+
+model QuestionInstance {
+  id        Int       @id @default(autoincrement())
+  comments  Comment[]
+  ranBy     User      @relation(fields: [userId], references: [id])
+  session   Session   @relation(fields: [sessionId], references: [id])
+  passed    Boolean
+  userId    Int
+  sessionId Int
+}
+
+model User {
+  id               Int                @id @default(autoincrement())
+  name             String             @unique
+  Comment          Comment[]
+  QuestionInstance QuestionInstance[]
+  Authored         Question[]
+  questionId       Int?
+}
+
+model Template {
+  id   Int      @id @default(autoincrement())
+  name String   @unique
+  tags String[]
+}
