@@ -18,25 +18,27 @@ export default async function SessionPage({
 }: {
   params: { sessionId: string };
 }) {
-  console.log(params.sessionId);
   const questions = await prisma.question.findMany();
   const input = await prisma.session.findFirst({
     where: { id: Number.parseInt(params.sessionId) },
     include: {
+      questions: true,
       QuestionInstance: {
-        include: { comments: { include: { author: true } }, ranBy: true },
+        include: {
+          comments: { include: { author: true } },
+          question: true,
+          ranBy: true,
+        },
       },
     },
   });
 
   if (input) {
-    console.log(questions);
-
     return (
       <div>
         <Stack>
           <Group gap={"xl"} px={32} grow>
-            <QuestionSelectTable questions={questions} />
+            <QuestionSelectTable questions={questions} session={input} />
             <InstructorView instances={input.QuestionInstance} />
           </Group>
         </Stack>

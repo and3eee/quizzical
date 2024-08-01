@@ -2,7 +2,7 @@ import { Divider, Paper, Stack, Title } from "@mantine/core";
 import { QuestionInstance } from "../lib/types";
 import QuestionInstaceCard from "./question/QuestionInstanceCard";
 
-export default function InstructorView(props:{instances:QuestionInstance[]}) {
+export default function InstructorView(props:{instances:QuestionInstance[] | any[]}) {
   return (
     <Paper >
       <Stack>

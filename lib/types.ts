@@ -4,7 +4,8 @@ export interface Session {
   name: string;
   coreTags: string[];
   tags: string[];
-  questions?: QuestionInstance[];
+  questions?: Question[];
+  QuestionInstance?: QuestionInstance[];
 }
 
 export interface Question {
@@ -30,6 +31,7 @@ export interface Comment {
 
 export interface QuestionInstance {
   id: number;
+  question?: Question;
   comments: Comment[];
   ranBy: User;
   session?: Session;

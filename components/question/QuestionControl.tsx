@@ -20,5 +20,5 @@ export default async function CreateQuestion(input: Question) {
 
   if (!out) return false;
 
-  console.log(out)
+
 }
