@@ -14,6 +14,8 @@ import {
   rem,
   keys,
   Divider,
+  Avatar,
+  Tooltip,
 } from "@mantine/core";
 import { Question, QuestionInstance, Session } from "../../lib/types";
 import {
@@ -26,6 +28,7 @@ import { useState } from "react";
 import { Router } from "next/router";
 import { SetSessionQuestions } from "../session/SessionControl";
 import { useRouter } from "next/navigation";
+import { User } from "@prisma/client";
 interface ThProps {
   children: React.ReactNode;
   reversed: boolean;
@@ -36,6 +39,7 @@ interface ThProps {
 export default function QuestionSelectTable(props: {
   questions: Question[] | any[];
   session: any;
+  full?: boolean;
 }) {
   const data = props.questions;
 
@@ -158,13 +162,14 @@ export default function QuestionSelectTable(props: {
   };
 
   const handleSelectChange = async (input: any, question: Question) => {
-    if (input && !selected.some((run) => run.id == question.id)) {
-      selected.push(question);
     
-      setSelected(selected);
+    if (input ) {
+      selected.push(question);
+      const hold = selected.concat([question])
+      setSelected(hold);
     }
 
-    if (!input && selected.some((run) => run.id == question.id)) {
+    if (!input) {
       setSelected(selected.filter((run) => run.id != question.id));
     }
   };
@@ -176,7 +181,22 @@ export default function QuestionSelectTable(props: {
 
     if (resp) router.refresh();
   };
-console.log(selected)
+
+  const reviewedAvatars = (question: any) => {
+    if (!question.reviewedBy) return;
+    return (
+      <Avatar.Group>
+        {question.reviewedBy.map((user: User) => (
+          <Tooltip label={user.name}>
+            <Avatar>
+              {user.name.split(" ").map((value) => value.charAt(0))}
+            </Avatar>
+          </Tooltip>
+        ))}
+      </Avatar.Group>
+    );
+  };
+
 
   const rows = sortedData.map((question) => (
     <Table.Tr key={question.id}>
@@ -184,12 +204,20 @@ console.log(selected)
       <Table.Td>{question.answer}</Table.Td>
       <Table.Td>{question.tags}</Table.Td>
       <Table.Td>{question.level}</Table.Td>
+      {props.full && <Table.Td>{reviewedAvatars(question)}</Table.Td>}
       <Table.Td>{question.lastReviewed.toLocaleString() ?? ""}</Table.Td>
       <Table.Td>
         <Checkbox
+          variant={
+            props.session.QuestionInstance.some(
+              (run: any) => run.question.id === question.id
+            ) && !selected.some((run) => run.id == question.id)
+              ? "outline"
+              : "default"
+          }
           indeterminate={
             props.session.QuestionInstance.some(
-              (run) => run.question.id === question.id
+              (run: any) => run.question.id === question.id
             ) && !selected.some((run) => run.id == question.id)
           }
           defaultChecked={selected.some((run) => run.id === question.id)}

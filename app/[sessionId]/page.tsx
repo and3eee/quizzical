@@ -22,7 +22,7 @@ export default async function SessionPage({
   const input = await prisma.session.findFirst({
     where: { id: Number.parseInt(params.sessionId) },
     include: {
-      questions: true,
+      questions: {include: {reviewedBy:true, reviewComments: true, followUps:true}},
       QuestionInstance: {
         include: {
           comments: { include: { author: true } },
@@ -39,7 +39,7 @@ export default async function SessionPage({
         <Stack>
           <Group gap={"xl"} px={32} grow>
             <QuestionSelectTable questions={questions} session={input} />
-            <InstructorView instances={input.QuestionInstance} />
+            <InstructorView session={input} instances={input.QuestionInstance} />
           </Group>
         </Stack>
       </div>

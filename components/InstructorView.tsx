@@ -1,17 +1,28 @@
 import { Divider, Paper, Stack, Title } from "@mantine/core";
-import { QuestionInstance } from "../lib/types";
-import QuestionInstaceCard from "./question/QuestionInstanceCard";
+import { QuestionInstance, Session } from "../lib/types";
+import QuestionInstanceCard from "./question/QuestionInstanceCard";
 
-export default function InstructorView(props:{instances:QuestionInstance[] | any[]}) {
+export default function InstructorView(props: {
+  session: Session |any ;
+  instances: QuestionInstance[] | any[];
+}) {
   return (
-    <Paper >
+    <Paper>
       <Stack>
         <Title>Instructor Bay</Title>
         <Divider />
         <Stack>
-            {props.instances.map((instance) => {
-                return <QuestionInstaceCard key={instance.id} question={instance} />;
-            })}
+          {props.instances.map((instance) => {
+            return (
+              <QuestionInstanceCard
+                detached={!props.session.questions?.some(
+                  (question: any) => question.id === instance.questionId
+                )}
+                key={instance.id}
+                question={instance}
+              />
+            );
+          })}
         </Stack>
       </Stack>
     </Paper>
