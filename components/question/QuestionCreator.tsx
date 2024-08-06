@@ -13,7 +13,7 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useState } from "react";
-import CreateQuestion from "./QuestionControl";
+import { CreateQuestion } from "./QuestionControl";
 
 export default function QuestionCreator() {
   const form = useForm({

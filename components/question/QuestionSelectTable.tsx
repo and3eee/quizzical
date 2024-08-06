@@ -16,6 +16,8 @@ import {
   Divider,
   Avatar,
   Tooltip,
+  Drawer,
+  Modal,
 } from "@mantine/core";
 import { Question, QuestionInstance, Session } from "../../lib/types";
 import {
@@ -29,6 +31,8 @@ import { Router } from "next/router";
 import { SetSessionQuestions } from "../session/SessionControl";
 import { useRouter } from "next/navigation";
 import { User } from "@prisma/client";
+import { useDisclosure } from '@mantine/hooks';
+import  QuestionEditor from "./QuestionEdit"
 interface ThProps {
   children: React.ReactNode;
   reversed: boolean;
@@ -49,10 +53,13 @@ export default function QuestionSelectTable(props: {
   const [selected, setSelected] = useState<Question[]>(
     props.session.questions ?? []
   );
+  const [editingQues, setEditingQues] = useState<Question | null>(null)
 
   const [sortedData, setSortedData] = useState(data);
   const [sortBy, setSortBy] = useState<keyof Question | null>(null);
   const [reverseSortDirection, setReverseSortDirection] = useState(false);
+
+  const [opened, { open, close }] = useDisclosure(false);
 
   function Th({ children, reversed, sorted, onSort }: ThProps) {
     const Icon = sorted ? (
@@ -197,9 +204,24 @@ export default function QuestionSelectTable(props: {
     );
   };
 
+  //SONIKA CHANGE
+
+  const editDrawer = (question:any) => {
+    const handleButtonClick = () => {
+      open();
+      setEditingQues(question);
+    }
+    return (
+      <>
+        <Button onClick={handleButtonClick}>Edit</Button>
+      </>
+    );
+  };
+
 
   const rows = sortedData.map((question) => (
     <Table.Tr key={question.id}>
+      <Table.Td>{editDrawer(question)}</Table.Td>
       <Table.Td>{question.content}</Table.Td>
       <Table.Td>{question.answer}</Table.Td>
       <Table.Td>{question.tags}</Table.Td>
@@ -237,6 +259,11 @@ export default function QuestionSelectTable(props: {
             <Title py={8} order={2} c={"white"}>
               Question Bay
             </Title>
+            <Modal opened={opened} onClose={close} title="Authentication">
+              {<QuestionEditor
+                  editingQues={editingQues}
+                  id={editingQues?.id!}/>}
+            </Modal>
             <Group justify="right">
               <Button color="gray">Search By Core Tags</Button>
               <Button color="gray">Search By All Tags</Button>
@@ -268,7 +295,8 @@ export default function QuestionSelectTable(props: {
 
         <Table>
           <Table.Thead>
-            <Table.Tr>
+            <Table.Tr> 
+              <Table.Th>Edit</Table.Th>        
               <Table.Th>Question</Table.Th>
               <Table.Th>Answer</Table.Th>
               <Th
