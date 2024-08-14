@@ -33,6 +33,9 @@ import { useRouter } from "next/navigation";
 import { User } from "@prisma/client";
 import { useDisclosure } from '@mantine/hooks';
 import  QuestionEditor from "./QuestionEdit"
+import { ModalsProvider } from '@mantine/modals'
+import { useModals } from '@mantine/modals'
+import { DeleteQuestion } from  "./QuestionControl"
 interface ThProps {
   children: React.ReactNode;
   reversed: boolean;
@@ -45,7 +48,7 @@ export default function QuestionSelectTable(props: {
   session: any;
   full?: boolean;
 }) {
-  const data = props.questions;
+  const [data, setData] = useState(props.questions);
 
   const [search, setSearch] = useState("");
 
@@ -239,10 +242,34 @@ export default function QuestionSelectTable(props: {
     );
   };
 
+  function Delete(input: any) {
+    const modals = useModals();
+
+    const openDeleteModal = () =>
+      modals.openConfirmModal({
+        title: 'Delete Question',
+        centered: true,
+        children: (
+          <Text size="sm">
+            Are you sure you want to delete this question?
+          </Text>
+        ),
+        labels: { confirm: 'Delete Question', cancel: "Cancel"},
+        confirmProps: { color: 'red' },
+        onCancel: () => console.log("Cancel"),
+        onConfirm: () => {
+          setData(data.filter((question) => (question.id != input.id)));
+          DeleteQuestion(input.id); 
+          setSortedData(sortData(data, {sortBy: sortBy, reversed: false, search, tags}));
+        }
+      })
+
+      return <Button onClick={openDeleteModal} color="red">X</Button>
+
+  }
 
   const rows = sortedData.map((question) => (
     <Table.Tr key={question.id}>
-      <Table.Td>{editDrawer(question)}</Table.Td>
       <Table.Td>{question.content}</Table.Td>
       <Table.Td>{question.answer}</Table.Td>
       <Table.Td>{question.tags}</Table.Td>
@@ -269,6 +296,11 @@ export default function QuestionSelectTable(props: {
           }
         />
       </Table.Td>
+      <Table.Td>{editDrawer(question)}
+        {<Delete
+          input={question}
+        />}
+      </Table.Td>
     </Table.Tr>
   ));
 
@@ -287,19 +319,23 @@ export default function QuestionSelectTable(props: {
       //   }
       
    // }))
-    for (let i = 0; i < data.length; i++)
-    {
-      if (data[i].id === input.id)
+    setData(data.map((question) => {
+      if(question.id === input.id)
       {
-        data[i] = input;
+        return input;
       }
-    }
+      else 
+      {
+        return question;
+      }
+    }))
     close();
-    setSorting("id");
+    setSortedData(sortData(data, {sortBy: sortBy, reversed: false, search, tags}));
   }
   }
 
   return (
+    <ModalsProvider>
     <Paper shadow="xl" withBorder radius={"lg"}>
       <Stack justify="center">
         <Paper bg={"cyan"} p="12" px="1rem" shadow="xl" radius={"lg"}>
@@ -344,8 +380,7 @@ export default function QuestionSelectTable(props: {
 
         <Table>
           <Table.Thead>
-            <Table.Tr> 
-              <Table.Th>Edit</Table.Th>        
+            <Table.Tr>       
               <Table.Th>Question</Table.Th>
               <Table.Th>Answer</Table.Th>
               <Th
@@ -370,6 +405,7 @@ export default function QuestionSelectTable(props: {
                 Last Reviewed
               </Th>
               <Table.Th>Select</Table.Th>
+              <Table.Th>Actions</Table.Th>   
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -388,5 +424,6 @@ export default function QuestionSelectTable(props: {
         </Table>
       </Stack>
     </Paper>
+    </ModalsProvider>
   );
 }

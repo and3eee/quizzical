@@ -40,3 +40,11 @@ export async function EditQuestion(input: Question, quesid:number) {
     },
   });
 }
+
+export async function DeleteQuestion(quesid:number) {
+  return await prisma.question.delete({
+    where: {
+      id: quesid,
+    }
+  });
+}
