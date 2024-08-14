@@ -24,7 +24,7 @@ export async function CreateQuestion(input: Question) {
 }
 
 export async function EditQuestion(input: Question, quesid:number) {
-  const update = await prisma.question.update({
+  return await prisma.question.update({
     where: {
       id: quesid,
     },

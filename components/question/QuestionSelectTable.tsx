@@ -86,21 +86,39 @@ export default function QuestionSelectTable(props: {
   }
 
   function filterData(data: Question[], search: string, tags: string[]) {
+    console.log("IN FILTER DATA");
+    console.log(data)
+    
     const query = search.toLowerCase().trim();
     const wrap = tags.map((value: string) => {
       return value.toLowerCase();
     });
-
-    const hold = data.filter((item: Question) =>
-      item.tags.some(
-        (tag: string) => wrap.includes(tag.toLowerCase()) || tags.length == 0
-      )
-    );
-    return hold.filter((item) =>
+    console.log(tags);
+    // this was yeeting out questions that didn't have tags on them.
+    // so if we're specifically searching by tag, then we yeet out ones with no tags, as well as no matching tags
+    //but if we're not searching by tag, we don't have to do this whole process.
+    let hold = null;
+    if (wrap.length > 0)
+    {
+      hold = data.filter((item: Question) =>
+        item.tags.some(
+          (tag: string) => (wrap.includes(tag.toLowerCase()) || tags.length == 0)
+        )
+      );
+    }
+    else 
+    {
+      hold = data;
+    }
+    console.log(hold)
+    
+    const output = hold.filter((item) =>
       keys(data[0]).some((key) =>
         item[key]?.toString().toLowerCase().includes(query)
       )
     );
+    console.log(output);
+    return output;
   }
 
   function sortData(
@@ -115,6 +133,7 @@ export default function QuestionSelectTable(props: {
     const { sortBy } = payload;
 
     if (!sortBy) {
+      console.log("CONDITION TRUE");
       return filterData(data, payload.search, payload.tags);
     }
 
@@ -137,6 +156,8 @@ export default function QuestionSelectTable(props: {
   }
 
   const setSorting = (field: keyof Question) => {
+    console.log("IN SET SORTING");
+    console.log(data);
     const reversed = field === sortBy ? !reverseSortDirection : false;
     setReverseSortDirection(reversed);
     setSortBy(field);
@@ -251,6 +272,33 @@ export default function QuestionSelectTable(props: {
     </Table.Tr>
   ));
 
+  const edit = (input:Question|null) => {
+    //console.log(input);
+    if (input)
+    {
+      console.log("INPUT FOUND");
+      // const new_data =(data.map((question) => {
+      //   if (question.id === input.id){
+      //     console.log("REPLACEMENT HAS HAPPENED")
+      //     return input;
+      //   }
+      //   else{
+      //     return question;
+      //   }
+      
+   // }))
+    for (let i = 0; i < data.length; i++)
+    {
+      if (data[i].id === input.id)
+      {
+        data[i] = input;
+      }
+    }
+    close();
+    setSorting("id");
+  }
+  }
+
   return (
     <Paper shadow="xl" withBorder radius={"lg"}>
       <Stack justify="center">
@@ -262,7 +310,8 @@ export default function QuestionSelectTable(props: {
             <Modal opened={opened} onClose={close} title="Authentication">
               {<QuestionEditor
                   editingQues={editingQues}
-                  id={editingQues?.id!}/>}
+                  id={editingQues?.id!}
+                  callback={edit}/>}
             </Modal>
             <Group justify="right">
               <Button color="gray">Search By Core Tags</Button>

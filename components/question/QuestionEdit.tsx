@@ -16,7 +16,9 @@ import {
   import { CreateQuestion, EditQuestion } from "./QuestionControl";
   import { Question } from "../../lib/types";
   
-  export default function QuestionEditor({ editingQues , id}: {editingQues:Question|null, id:number|null}) {
+  export default function QuestionEditor( props: {editingQues:Question|null, id:number|null, callback?:(input:Question|null)=>void}) {
+    const id = props.id
+    const editingQues = props.editingQues
     console.log("ID: ", id)
     const form = useForm({
       mode: "uncontrolled",
@@ -36,10 +38,17 @@ import {
       },
     });
   
+    const submit = async (values) => {
+      if (!values || !id){return;}
+      const result = await EditQuestion(values, id);
+      console.log("IN SUBMIT")
+      console.log(result);
+      if (props.callback) {props.callback(result);}
+    }
   
     return (
       <Card radius="xl">
-        <form onSubmit={form.onSubmit((values) => EditQuestion(values, id))}>
+        <form onSubmit={form.onSubmit((values) => submit(values))}>
           <Stack gap="l" justify="center">
             <Title size="lg">New Question</Title>
             <Divider />
