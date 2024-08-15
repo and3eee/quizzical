@@ -36,6 +36,7 @@ import  QuestionEditor from "./QuestionEdit"
 import { ModalsProvider } from '@mantine/modals'
 import { useModals } from '@mantine/modals'
 import { DeleteQuestion } from  "./QuestionControl"
+import { modals } from "@mantine/modals"
 interface ThProps {
   children: React.ReactNode;
   reversed: boolean;
@@ -48,7 +49,7 @@ export default function QuestionSelectTable(props: {
   session: any;
   full?: boolean;
 }) {
-  const [data, setData] = useState(props.questions);
+  const data = props.questions;
 
   const [search, setSearch] = useState("");
 
@@ -242,29 +243,49 @@ export default function QuestionSelectTable(props: {
     );
   };
 
-  function Delete(input: any) {
-    const modals = useModals();
-
-    const openDeleteModal = () =>
-      modals.openConfirmModal({
-        title: 'Delete Question',
-        centered: true,
-        children: (
-          <Text size="sm">
-            Are you sure you want to delete this question?
-          </Text>
-        ),
-        labels: { confirm: 'Delete Question', cancel: "Cancel"},
-        confirmProps: { color: 'red' },
-        onCancel: () => console.log("Cancel"),
-        onConfirm: () => {
-          setData(data.filter((question) => (question.id != input.id)));
-          DeleteQuestion(input.id); 
-          setSortedData(sortData(data, {sortBy: sortBy, reversed: false, search, tags}));
+  const openDeleteModal = (input: Question) =>
+    modals.openConfirmModal({
+      title: 'Delete Question',
+      centered: true,
+      children: (
+        <Text size="sm">
+          Are you sure you want to delete this question?
+        </Text>
+      ),
+      labels: { confirm: 'Delete Question', cancel: "Cancel"},
+      confirmProps: { color: 'red' },
+      onCancel: () => console.log("Cancel"),
+      onConfirm: () => {
+        console.log(input);
+        console.log("INPUT.ID", input.id);
+        let index_to_remove = 0;
+        for (let i = 0; i < data.length; i++)
+        {
+          if(data[i].id == input.id)
+          {
+            index_to_remove = i;
+          }
         }
-      })
+        data.splice(index_to_remove, 1)
+        console.log(data);
+        if (input.id)
+        {
+          console.log(input.id);
+          DeleteQuestion(input.id); 
+        }
+        setSortedData(sortData(data, {sortBy: sortBy, reversed: false, search, tags}));
+      }
+    
+    })
+  
+  const delete_question = (input: any) => {
 
-      return <Button onClick={openDeleteModal} color="red">X</Button>
+      return  (
+      <>
+        <Button onClick={() => openDeleteModal(input)} color="red">X</Button>
+      
+      </>
+      )
 
   }
 
@@ -297,9 +318,7 @@ export default function QuestionSelectTable(props: {
         />
       </Table.Td>
       <Table.Td>{editDrawer(question)}
-        {<Delete
-          input={question}
-        />}
+        {delete_question(question)}
       </Table.Td>
     </Table.Tr>
   ));
@@ -319,16 +338,13 @@ export default function QuestionSelectTable(props: {
       //   }
       
    // }))
-    setData(data.map((question) => {
-      if(question.id === input.id)
+   for (let i = 0; i < data.length; i++)
+    {
+      if (data[i].id === input.id)
       {
-        return input;
+        data[i] = input;
       }
-      else 
-      {
-        return question;
-      }
-    }))
+    }
     close();
     setSortedData(sortData(data, {sortBy: sortBy, reversed: false, search, tags}));
   }
@@ -336,94 +352,94 @@ export default function QuestionSelectTable(props: {
 
   return (
     <ModalsProvider>
-    <Paper shadow="xl" withBorder radius={"lg"}>
-      <Stack justify="center">
-        <Paper bg={"cyan"} p="12" px="1rem" shadow="xl" radius={"lg"}>
-          <Group justify="space-between">
-            <Title py={8} order={2} c={"white"}>
-              Question Bay
-            </Title>
-            <Modal opened={opened} onClose={close} title="Authentication">
-              {<QuestionEditor
-                  editingQues={editingQues}
-                  id={editingQues?.id!}
-                  callback={edit}/>}
-            </Modal>
-            <Group justify="right">
-              <Button color="gray">Search By Core Tags</Button>
-              <Button color="gray">Search By All Tags</Button>
-              <Button color="lime" onClick={saveSelected}>
-                Save Questions
-              </Button>
+      <Paper shadow="xl" withBorder radius={"lg"}>
+        <Stack justify="center">
+          <Paper bg={"cyan"} p="12" px="1rem" shadow="xl" radius={"lg"}>
+            <Group justify="space-between">
+              <Title py={8} order={2} c={"white"}>
+                Question Bay
+              </Title>
+              <Modal opened={opened} onClose={close} title="Authentication">
+                {<QuestionEditor
+                    editingQues={editingQues}
+                    id={editingQues?.id!}
+                    callback={edit}/>}
+              </Modal>
+              <Group justify="right">
+                <Button color="gray">Search By Core Tags</Button>
+                <Button color="gray">Search By All Tags</Button>
+                <Button color="lime" onClick={saveSelected}>
+                  Save Questions
+                </Button>
+              </Group>
             </Group>
-          </Group>
 
-          <Group grow justify="space-between">
-            <TextInput
-              mb="md"
-              size="s"
-              leftSection={<RiSearch2Fill />}
-              value={search}
-              onChange={handleSearchChange}
-              label="Search"
-            />
-            <TagsInput
-              mb="md"
-              size="s"
-              label="Filter Tags"
-              value={tags}
-              onChange={handleTagChange}
-            />
-          </Group>
-          <Text size="xs">{selected.length} Selected</Text>
-        </Paper>
+            <Group grow justify="space-between">
+              <TextInput
+                mb="md"
+                size="s"
+                leftSection={<RiSearch2Fill />}
+                value={search}
+                onChange={handleSearchChange}
+                label="Search"
+              />
+              <TagsInput
+                mb="md"
+                size="s"
+                label="Filter Tags"
+                value={tags}
+                onChange={handleTagChange}
+              />
+            </Group>
+            <Text size="xs">{selected.length} Selected</Text>
+          </Paper>
 
-        <Table>
-          <Table.Thead>
-            <Table.Tr>       
-              <Table.Th>Question</Table.Th>
-              <Table.Th>Answer</Table.Th>
-              <Th
-                sorted={sortBy === "tags"}
-                reversed={reverseSortDirection}
-                onSort={() => setSorting("tags")}
-              >
-                Tags
-              </Th>
-              <Th
-                sorted={sortBy === "level"}
-                reversed={reverseSortDirection}
-                onSort={() => setSorting("level")}
-              >
-                Level
-              </Th>
-              <Th
-                sorted={sortBy === "lastReviewed"}
-                reversed={reverseSortDirection}
-                onSort={() => setSorting("lastReviewed")}
-              >
-                Last Reviewed
-              </Th>
-              <Table.Th>Select</Table.Th>
-              <Table.Th>Actions</Table.Th>   
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {rows.length > 0 ? (
-              rows
-            ) : (
-              <Table.Tr>
-                <Table.Td colSpan={Object.keys(data[0]).length}>
-                  <Text fw={500} ta="center">
-                    Nothing found
-                  </Text>
-                </Table.Td>
+          <Table>
+            <Table.Thead>
+              <Table.Tr>       
+                <Table.Th>Question</Table.Th>
+                <Table.Th>Answer</Table.Th>
+                <Th
+                  sorted={sortBy === "tags"}
+                  reversed={reverseSortDirection}
+                  onSort={() => setSorting("tags")}
+                >
+                  Tags
+                </Th>
+                <Th
+                  sorted={sortBy === "level"}
+                  reversed={reverseSortDirection}
+                  onSort={() => setSorting("level")}
+                >
+                  Level
+                </Th>
+                <Th
+                  sorted={sortBy === "lastReviewed"}
+                  reversed={reverseSortDirection}
+                  onSort={() => setSorting("lastReviewed")}
+                >
+                  Last Reviewed
+                </Th>
+                <Table.Th>Select</Table.Th>
+                <Table.Th>Actions</Table.Th>   
               </Table.Tr>
-            )}
-          </Table.Tbody>
-        </Table>
-      </Stack>
-    </Paper>
+            </Table.Thead>
+            <Table.Tbody>
+              {rows.length > 0 ? (
+                rows
+              ) : (
+                <Table.Tr>
+                  <Table.Td colSpan={Object.keys(data[0]).length}>
+                    <Text fw={500} ta="center">
+                      Nothing found
+                    </Text>
+                  </Table.Td>
+                </Table.Tr>
+              )}
+            </Table.Tbody>
+          </Table>
+        </Stack>
+      </Paper>
     </ModalsProvider>
   );
 }
