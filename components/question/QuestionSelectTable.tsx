@@ -16,6 +16,8 @@ import {
   Divider,
   Avatar,
   Tooltip,
+  Drawer,
+  Modal,
 } from "@mantine/core";
 import { Question, QuestionInstance, Session } from "../../lib/types";
 import {
@@ -29,6 +31,8 @@ import { Router } from "next/router";
 import { SetSessionQuestions } from "../session/SessionControl";
 import { useRouter } from "next/navigation";
 import { User } from "@prisma/client";
+import { useDisclosure } from '@mantine/hooks';
+import  QuestionEditor from "./QuestionEdit"
 interface ThProps {
   children: React.ReactNode;
   reversed: boolean;
@@ -49,10 +53,13 @@ export default function QuestionSelectTable(props: {
   const [selected, setSelected] = useState<Question[]>(
     props.session.questions ?? []
   );
+  const [editingQues, setEditingQues] = useState<Question | null>(null)
 
   const [sortedData, setSortedData] = useState(data);
   const [sortBy, setSortBy] = useState<keyof Question | null>(null);
   const [reverseSortDirection, setReverseSortDirection] = useState(false);
+
+  const [opened, { open, close }] = useDisclosure(false);
 
   function Th({ children, reversed, sorted, onSort }: ThProps) {
     const Icon = sorted ? (
@@ -79,21 +86,39 @@ export default function QuestionSelectTable(props: {
   }
 
   function filterData(data: Question[], search: string, tags: string[]) {
+    console.log("IN FILTER DATA");
+    console.log(data)
+    
     const query = search.toLowerCase().trim();
     const wrap = tags.map((value: string) => {
       return value.toLowerCase();
     });
-
-    const hold = data.filter((item: Question) =>
-      item.tags.some(
-        (tag: string) => wrap.includes(tag.toLowerCase()) || tags.length == 0
-      )
-    );
-    return hold.filter((item) =>
+    console.log(tags);
+    // this was yeeting out questions that didn't have tags on them.
+    // so if we're specifically searching by tag, then we yeet out ones with no tags, as well as no matching tags
+    //but if we're not searching by tag, we don't have to do this whole process.
+    let hold = null;
+    if (wrap.length > 0)
+    {
+      hold = data.filter((item: Question) =>
+        item.tags.some(
+          (tag: string) => (wrap.includes(tag.toLowerCase()) || tags.length == 0)
+        )
+      );
+    }
+    else 
+    {
+      hold = data;
+    }
+    console.log(hold)
+    
+    const output = hold.filter((item) =>
       keys(data[0]).some((key) =>
         item[key]?.toString().toLowerCase().includes(query)
       )
     );
+    console.log(output);
+    return output;
   }
 
   function sortData(
@@ -108,6 +133,7 @@ export default function QuestionSelectTable(props: {
     const { sortBy } = payload;
 
     if (!sortBy) {
+      console.log("CONDITION TRUE");
       return filterData(data, payload.search, payload.tags);
     }
 
@@ -130,6 +156,8 @@ export default function QuestionSelectTable(props: {
   }
 
   const setSorting = (field: keyof Question) => {
+    console.log("IN SET SORTING");
+    console.log(data);
     const reversed = field === sortBy ? !reverseSortDirection : false;
     setReverseSortDirection(reversed);
     setSortBy(field);
@@ -197,9 +225,24 @@ export default function QuestionSelectTable(props: {
     );
   };
 
+  //SONIKA CHANGE
+
+  const editDrawer = (question:any) => {
+    const handleButtonClick = () => {
+      open();
+      setEditingQues(question);
+    }
+    return (
+      <>
+        <Button onClick={handleButtonClick}>Edit</Button>
+      </>
+    );
+  };
+
 
   const rows = sortedData.map((question) => (
     <Table.Tr key={question.id}>
+      <Table.Td>{editDrawer(question)}</Table.Td>
       <Table.Td>{question.content}</Table.Td>
       <Table.Td>{question.answer}</Table.Td>
       <Table.Td>{question.tags}</Table.Td>
@@ -229,6 +272,33 @@ export default function QuestionSelectTable(props: {
     </Table.Tr>
   ));
 
+  const edit = (input:Question|null) => {
+    //console.log(input);
+    if (input)
+    {
+      console.log("INPUT FOUND");
+      // const new_data =(data.map((question) => {
+      //   if (question.id === input.id){
+      //     console.log("REPLACEMENT HAS HAPPENED")
+      //     return input;
+      //   }
+      //   else{
+      //     return question;
+      //   }
+      
+   // }))
+    for (let i = 0; i < data.length; i++)
+    {
+      if (data[i].id === input.id)
+      {
+        data[i] = input;
+      }
+    }
+    close();
+    setSorting("id");
+  }
+  }
+
   return (
     <Paper shadow="xl" withBorder radius={"lg"}>
       <Stack justify="center">
@@ -237,6 +307,12 @@ export default function QuestionSelectTable(props: {
             <Title py={8} order={2} c={"white"}>
               Question Bay
             </Title>
+            <Modal opened={opened} onClose={close} title="Authentication">
+              {<QuestionEditor
+                  editingQues={editingQues}
+                  id={editingQues?.id!}
+                  callback={edit}/>}
+            </Modal>
             <Group justify="right">
               <Button color="gray">Search By Core Tags</Button>
               <Button color="gray">Search By All Tags</Button>
@@ -268,7 +344,8 @@ export default function QuestionSelectTable(props: {
 
         <Table>
           <Table.Thead>
-            <Table.Tr>
+            <Table.Tr> 
+              <Table.Th>Edit</Table.Th>        
               <Table.Th>Question</Table.Th>
               <Table.Th>Answer</Table.Th>
               <Th
