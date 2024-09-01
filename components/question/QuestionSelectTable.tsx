@@ -86,14 +86,14 @@ export default function QuestionSelectTable(props: {
   }
 
   function filterData(data: Question[], search: string, tags: string[]) {
-    console.log("IN FILTER DATA");
-    console.log(data)
+    
+    
     
     const query = search.toLowerCase().trim();
     const wrap = tags.map((value: string) => {
       return value.toLowerCase();
     });
-    console.log(tags);
+    
     // this was yeeting out questions that didn't have tags on them.
     // so if we're specifically searching by tag, then we yeet out ones with no tags, as well as no matching tags
     //but if we're not searching by tag, we don't have to do this whole process.
@@ -110,14 +110,14 @@ export default function QuestionSelectTable(props: {
     {
       hold = data;
     }
-    console.log(hold)
+    
     
     const output = hold.filter((item) =>
       keys(data[0]).some((key) =>
         item[key]?.toString().toLowerCase().includes(query)
       )
     );
-    console.log(output);
+    
     return output;
   }
 
@@ -133,7 +133,7 @@ export default function QuestionSelectTable(props: {
     const { sortBy } = payload;
 
     if (!sortBy) {
-      console.log("CONDITION TRUE");
+      
       return filterData(data, payload.search, payload.tags);
     }
 
@@ -156,8 +156,7 @@ export default function QuestionSelectTable(props: {
   }
 
   const setSorting = (field: keyof Question) => {
-    console.log("IN SET SORTING");
-    console.log(data);
+
     const reversed = field === sortBy ? !reverseSortDirection : false;
     setReverseSortDirection(reversed);
     setSortBy(field);
@@ -273,13 +272,13 @@ export default function QuestionSelectTable(props: {
   ));
 
   const edit = (input:Question|null) => {
-    //console.log(input);
+    //
     if (input)
     {
-      console.log("INPUT FOUND");
+      
       // const new_data =(data.map((question) => {
       //   if (question.id === input.id){
-      //     console.log("REPLACEMENT HAS HAPPENED")
+      //     
       //     return input;
       //   }
       //   else{

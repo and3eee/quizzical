@@ -19,7 +19,7 @@ import {
   export default function QuestionEditor( props: {editingQues:Question|null, id:number|null, callback?:(input:Question|null)=>void}) {
     const id = props.id
     const editingQues = props.editingQues
-    console.log("ID: ", id)
+    
     const form = useForm({
       mode: "uncontrolled",
       initialValues: {
@@ -41,8 +41,8 @@ import {
     const submit = async (values) => {
       if (!values || !id){return;}
       const result = await EditQuestion(values, id);
-      console.log("IN SUBMIT")
-      console.log(result);
+      
+      
       if (props.callback) {props.callback(result);}
     }
   

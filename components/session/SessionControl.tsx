@@ -36,7 +36,7 @@ export async function SetSessionQuestions(
   input: Session | any,
   selected: Question[]
 ) {
-  console.log(selected);
+  
   const dif_ids = selected
     .filter(
       (question: Question) =>
@@ -62,7 +62,7 @@ export async function SetSessionQuestions(
           };
         })
     : [];
-    console.log(removal);
+    
  
 
   const out = await prisma.session.update({
