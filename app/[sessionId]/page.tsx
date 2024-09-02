@@ -18,15 +18,22 @@ export default async function SessionPage({
 }: {
   params: { sessionId: string };
 }) {
-  const questions = await prisma.question.findMany();
+  const questions = await prisma.question.findMany({
+    include: {
+      parent: true,
+      followUps: true,
+      reviewComments: { include: { author: true } },
+      reviewedBy: true,
+    },
+  });
   const input = await prisma.session.findFirst({
     where: { id: Number.parseInt(params.sessionId) },
     include: {
-      questions: {include: {reviewedBy:true, reviewComments: true, followUps:true}},
+      questions: true,
       QuestionInstance: {
         include: {
           comments: { include: { author: true } },
-          question: true,
+          question: { include: { followUps: true, parent: true } },
           ranBy: true,
         },
       },
@@ -36,11 +43,14 @@ export default async function SessionPage({
   if (input) {
     return (
       <div>
-        <Stack>
-          <Group gap={"xl"} px={32} grow>
+        <Stack p="2rem">
+ 
             <QuestionSelectTable questions={questions} session={input} />
-            <InstructorView session={input} instances={input.QuestionInstance} />
-          </Group>
+            <InstructorView
+              session={input}
+              instances={input.QuestionInstance}
+            />
+     
         </Stack>
       </div>
     );

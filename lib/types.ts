@@ -19,12 +19,13 @@ export interface Question {
   reviewComments?:Comment[];
   lastReviewed: Date;
   expectedMinutes?: number;
-  followUp?: Question;
+  followUps?: Question[];
+  parent?:Question
 }
 
 export interface Comment {
   id: string;
-  author: User;
+  author?: User;
   postedOn: Date;
   content: string;
 }

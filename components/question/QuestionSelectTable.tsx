@@ -18,12 +18,18 @@ import {
   Tooltip,
   Drawer,
   Modal,
+  ActionIcon,
+  Collapse,
+  Badge,
 } from "@mantine/core";
 import { Question, QuestionInstance, Session } from "../../lib/types";
 import {
   RiAlignCenter,
   RiArrowDownWideLine,
   RiArrowUpWideLine,
+  RiBookFill,
+  RiBookOpenFill,
+  RiPencilLine,
   RiSearch2Fill,
 } from "react-icons/ri";
 import { useState } from "react";
@@ -31,8 +37,9 @@ import { Router } from "next/router";
 import { SetSessionQuestions } from "../session/SessionControl";
 import { useRouter } from "next/navigation";
 import { User } from "@prisma/client";
-import { useDisclosure } from '@mantine/hooks';
-import  QuestionEditor from "./QuestionEdit"
+import { useDisclosure } from "@mantine/hooks";
+import QuestionEditor from "./QuestionEdit";
+import QuestionLinkModal from "./QuestionLinkModal";
 interface ThProps {
   children: React.ReactNode;
   reversed: boolean;
@@ -42,7 +49,7 @@ interface ThProps {
 
 export default function QuestionSelectTable(props: {
   questions: Question[] | any[];
-  session: any;
+  session: Session;
   full?: boolean;
 }) {
   const data = props.questions;
@@ -53,7 +60,7 @@ export default function QuestionSelectTable(props: {
   const [selected, setSelected] = useState<Question[]>(
     props.session.questions ?? []
   );
-  const [editingQues, setEditingQues] = useState<Question | null>(null)
+  const [editingQues, setEditingQues] = useState<Question | null>(null);
 
   const [sortedData, setSortedData] = useState(data);
   const [sortBy, setSortBy] = useState<keyof Question | null>(null);
@@ -86,38 +93,31 @@ export default function QuestionSelectTable(props: {
   }
 
   function filterData(data: Question[], search: string, tags: string[]) {
-    
-    
-    
     const query = search.toLowerCase().trim();
     const wrap = tags.map((value: string) => {
       return value.toLowerCase();
     });
-    
+
     // this was yeeting out questions that didn't have tags on them.
     // so if we're specifically searching by tag, then we yeet out ones with no tags, as well as no matching tags
     //but if we're not searching by tag, we don't have to do this whole process.
     let hold = null;
-    if (wrap.length > 0)
-    {
+    if (wrap.length > 0) {
       hold = data.filter((item: Question) =>
         item.tags.some(
-          (tag: string) => (wrap.includes(tag.toLowerCase()) || tags.length == 0)
+          (tag: string) => wrap.includes(tag.toLowerCase()) || tags.length == 0
         )
       );
-    }
-    else 
-    {
+    } else {
       hold = data;
     }
-    
-    
+
     const output = hold.filter((item) =>
       keys(data[0]).some((key) =>
         item[key]?.toString().toLowerCase().includes(query)
       )
     );
-    
+
     return output;
   }
 
@@ -133,7 +133,6 @@ export default function QuestionSelectTable(props: {
     const { sortBy } = payload;
 
     if (!sortBy) {
-      
       return filterData(data, payload.search, payload.tags);
     }
 
@@ -156,7 +155,6 @@ export default function QuestionSelectTable(props: {
   }
 
   const setSorting = (field: keyof Question) => {
-
     const reversed = field === sortBy ? !reverseSortDirection : false;
     setReverseSortDirection(reversed);
     setSortBy(field);
@@ -189,10 +187,9 @@ export default function QuestionSelectTable(props: {
   };
 
   const handleSelectChange = async (input: any, question: Question) => {
-    
-    if (input ) {
+    if (input) {
       selected.push(question);
-      const hold = selected.concat([question])
+      const hold = selected.concat([question]);
       setSelected(hold);
     }
 
@@ -225,78 +222,91 @@ export default function QuestionSelectTable(props: {
   };
 
   //SONIKA CHANGE
-
-  const editDrawer = (question:any) => {
+  //ANDY TOUCH UP
+  const editDrawer = (question: any) => {
     const handleButtonClick = () => {
       open();
       setEditingQues(question);
-    }
+    };
     return (
-      <>
-        <Button onClick={handleButtonClick}>Edit</Button>
-      </>
+      <ActionIcon radius="lg" onClick={handleButtonClick}>
+        <RiPencilLine />
+      </ActionIcon>
     );
   };
-
+  
 
   const rows = sortedData.map((question) => (
     <Table.Tr key={question.id}>
-      <Table.Td>{editDrawer(question)}</Table.Td>
+      <Table.Td>
+        <Tooltip
+          radius={"lg"}
+          multiline
+          maw="8rem"
+          openDelay={600}
+          label={
+            !selected.some((run) => run.id == question.id)
+              ? props.session.QuestionInstance?.some(
+                  (run: any) => run.question.id === question.id
+                )
+                ? "Not selected but present in bay"
+                : "Unselected"
+              : "Selected"
+          }
+        >
+          <Checkbox
+            variant={
+              props.session.QuestionInstance?.some(
+                (run: any) => run.question.id === question.id
+              ) && !selected.some((run) => run.id == question.id)
+                ? "outline"
+                : "default"
+            }
+            indeterminate={
+              props.session.QuestionInstance?.some(
+                (run: any) => run.question.id === question.id
+              ) && !selected.some((run) => run.id == question.id)
+            }
+            defaultChecked={selected.some((run) => run.id === question.id)}
+            onChange={(event) =>
+              handleSelectChange(event.currentTarget.checked, question)
+            }
+          />
+        </Tooltip>
+      </Table.Td>
       <Table.Td>{question.content}</Table.Td>
       <Table.Td>{question.answer}</Table.Td>
-      <Table.Td>{question.tags}</Table.Td>
+      <Table.Td>
+        <Group gap="xs">
+          {question.tags.map((tag: string) => (
+            <Badge size="sm">{tag}</Badge>
+          ))}
+        </Group>
+      </Table.Td>
       <Table.Td>{question.level}</Table.Td>
       {props.full && <Table.Td>{reviewedAvatars(question)}</Table.Td>}
       <Table.Td>{question.lastReviewed.toLocaleString() ?? ""}</Table.Td>
       <Table.Td>
-        <Checkbox
-          variant={
-            props.session.QuestionInstance.some(
-              (run: any) => run.question.id === question.id
-            ) && !selected.some((run) => run.id == question.id)
-              ? "outline"
-              : "default"
-          }
-          indeterminate={
-            props.session.QuestionInstance.some(
-              (run: any) => run.question.id === question.id
-            ) && !selected.some((run) => run.id == question.id)
-          }
-          defaultChecked={selected.some((run) => run.id === question.id)}
-          onChange={(event) =>
-            handleSelectChange(event.currentTarget.checked, question)
-          }
-        />
+        <Group>
+          {editDrawer(question)}
+          <QuestionLinkModal question={question} options={props.questions} />
+        </Group>
       </Table.Td>
     </Table.Tr>
   ));
 
-  const edit = (input:Question|null) => {
-    //
-    if (input)
-    {
-      
-      // const new_data =(data.map((question) => {
-      //   if (question.id === input.id){
-      //     
-      //     return input;
-      //   }
-      //   else{
-      //     return question;
-      //   }
-      
-   // }))
-    for (let i = 0; i < data.length; i++)
-    {
-      if (data[i].id === input.id)
-      {
-        data[i] = input;
+  const edit = (input: Question | null) => {
+    if (input) {
+      for (let i = 0; i < data.length; i++) {
+        if (data[i].id === input.id) {
+          data[i] = input;
+        }
       }
+      close();
+      setSorting("id");
     }
-    close();
-    setSorting("id");
-  }
-  }
+  };
+  const [collapsed, { toggle }] = useDisclosure(false);
 
   return (
     <Paper shadow="xl" withBorder radius={"lg"}>
@@ -307,14 +317,31 @@ export default function QuestionSelectTable(props: {
               Question Bay
             </Title>
             <Modal opened={opened} onClose={close} title="Authentication">
-              {<QuestionEditor
+              {
+                <QuestionEditor
                   editingQues={editingQues}
                   id={editingQues?.id!}
-                  callback={edit}/>}
+                  callback={edit}
+                />
+              }
             </Modal>
             <Group justify="right">
-              <Button color="gray">Search By Core Tags</Button>
-              <Button color="gray">Search By All Tags</Button>
+              <Button
+                color="gray"
+                onClick={() => handleTagChange(props.session.coreTags)}
+              >
+                Search By Core Tags
+              </Button>
+              <Button
+                color="gray"
+                onClick={() =>
+                  handleTagChange(
+                    props.session.tags.concat(props.session.coreTags)
+                  )
+                }
+              >
+                Search By All Tags
+              </Button>
               <Button color="lime" onClick={saveSelected}>
                 Save Questions
               </Button>
@@ -338,53 +365,66 @@ export default function QuestionSelectTable(props: {
               onChange={handleTagChange}
             />
           </Group>
-          <Text size="xs">{selected.length} Selected</Text>
+          <Group>
+            <Tooltip label={collapsed ? "Open List" : "Collapse List"}>
+              <ActionIcon
+                radius="lg"
+                aria-label={collapsed ? "Open List" : "Collapse List"}
+                onClick={toggle}
+              >
+                {collapsed ? <RiBookFill /> : <RiBookOpenFill />}{" "}
+              </ActionIcon>
+            </Tooltip>{" "}
+            <Text size="xs">{selected.length} Selected</Text>
+          </Group>
         </Paper>
-
-        <Table>
-          <Table.Thead>
-            <Table.Tr> 
-              <Table.Th>Edit</Table.Th>        
-              <Table.Th>Question</Table.Th>
-              <Table.Th>Answer</Table.Th>
-              <Th
-                sorted={sortBy === "tags"}
-                reversed={reverseSortDirection}
-                onSort={() => setSorting("tags")}
-              >
-                Tags
-              </Th>
-              <Th
-                sorted={sortBy === "level"}
-                reversed={reverseSortDirection}
-                onSort={() => setSorting("level")}
-              >
-                Level
-              </Th>
-              <Th
-                sorted={sortBy === "lastReviewed"}
-                reversed={reverseSortDirection}
-                onSort={() => setSorting("lastReviewed")}
-              >
-                Last Reviewed
-              </Th>
-              <Table.Th>Select</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {rows.length > 0 ? (
-              rows
-            ) : (
+        <Collapse in={!collapsed}>
+          <Table>
+            <Table.Thead>
               <Table.Tr>
-                <Table.Td colSpan={Object.keys(data[0]).length}>
-                  <Text fw={500} ta="center">
-                    Nothing found
-                  </Text>
-                </Table.Td>
+                <Table.Th>Select</Table.Th>
+                <Table.Th>Question</Table.Th>
+                <Table.Th>Answer</Table.Th>
+                <Th
+                  sorted={sortBy === "tags"}
+                  reversed={reverseSortDirection}
+                  onSort={() => setSorting("tags")}
+                >
+                  Tags
+                </Th>
+                <Th
+                  sorted={sortBy === "level"}
+                  reversed={reverseSortDirection}
+                  onSort={() => setSorting("level")}
+                >
+                  Level
+                </Th>
+                <Th
+                  sorted={sortBy === "lastReviewed"}
+                  reversed={reverseSortDirection}
+                  onSort={() => setSorting("lastReviewed")}
+                >
+                  Last Reviewed
+                </Th>
+
+                <Table.Th>Actions</Table.Th>
               </Table.Tr>
-            )}
-          </Table.Tbody>
-        </Table>
+            </Table.Thead>
+            <Table.Tbody>
+              {rows.length > 0 ? (
+                rows
+              ) : (
+                <Table.Tr>
+                  <Table.Td colSpan={Object.keys(data[0]).length}>
+                    <Text fw={500} ta="center">
+                      Nothing found
+                    </Text>
+                  </Table.Td>
+                </Table.Tr>
+              )}
+            </Table.Tbody>
+          </Table>
+        </Collapse>
       </Stack>
     </Paper>
   );

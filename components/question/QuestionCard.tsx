@@ -32,6 +32,8 @@ export default function QuestionCard(props: {
     const comment = () => {
         
     }
+
+
   return (
     <Card miw="20rem" radius="md" withBorder={props.complete} >
       <Stack gap="sm">
@@ -41,7 +43,7 @@ export default function QuestionCard(props: {
           )}
           <Group justify="right" gap="xs">
             {props.question.tags.map((value) => (
-              <Badge size="sm" color="gray">
+              <Badge key={value} size="sm" color="gray">
                 {value}
               </Badge>
             ))}
