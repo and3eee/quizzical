@@ -1,4 +1,11 @@
-import { Tooltip, ActionIcon, Modal, Text, Stack } from "@mantine/core";
+import {
+  Tooltip,
+  ActionIcon,
+  Modal,
+  Title,
+  Stack,
+  ScrollArea,
+} from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 
 import { RiBookFill, RiBookOpenFill, RiLink } from "react-icons/ri";
@@ -10,7 +17,6 @@ export default function QuestionLinkModal(props: {
   question: Question;
   options: Question[];
 }) {
-
   //Only want questions that have a tag in common and its not already the parent or a child.
   const filteredQuestion: Question[] = props.options.filter((opt) => {
     if (
@@ -37,41 +43,45 @@ export default function QuestionLinkModal(props: {
         </ActionIcon>
       </Tooltip>
       <Modal size="lg" opened={opened} onClose={close} title="Link Questions">
-        {props.question.parent && (
-          <Stack>
-            <Text>Parent Question</Text>
-            <LinkCard
-              question={props.question.parent}
-              target={props.question}
-            />
-          </Stack>
-        )}
-
-        {props.question.followUps && (
-          <Stack>
-            <Text>Child Question(s)</Text>{" "}
-            {props.question.followUps?.map((quest: Question) => (
+        <Stack gap="xl">
+          {props.question.parent && (
+            <Stack align="center">
+              <Title order={3}>Parent Question</Title>
               <LinkCard
-                key={quest.content}
-                question={quest}
+                question={props.question.parent}
                 target={props.question}
               />
-            ))}
-          </Stack>
-        )}
-        {filteredQuestion && (
-          <Stack>
-            <Text>Related Questions</Text>
+            </Stack>
+          )}
 
-            {filteredQuestion!.map((quest: Question) => (
-              <LinkCard
-                key={quest.content}
-                question={quest}
-                target={props.question}
-              />
-            ))}
-          </Stack>
-        )}
+          {props.question.followUps && props.question.followUps.length > 0 && (
+            <Stack align="center">
+              <Title order={3}>Child Question(s)</Title>{" "}
+              {props.question.followUps?.map((quest: Question) => (
+                <LinkCard
+                  key={quest.content}
+                  question={quest}
+                  target={props.question}
+                />
+              ))}
+            </Stack>
+          )}
+          {filteredQuestion && (
+            <Stack align="center">
+              <Title order={3}>Related Questions</Title>
+              <ScrollArea h={650}>
+                <Stack gap="xs">
+                {filteredQuestion!.map((quest: Question) => (
+                  <LinkCard
+                    key={quest.content}
+                    question={quest}
+                    target={props.question}
+                  />
+                ))}</Stack>
+              </ScrollArea>
+            </Stack>
+          )}
+        </Stack>
       </Modal>
     </>
   );
