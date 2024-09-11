@@ -41,8 +41,8 @@ model Question {
   parent           Question?          @relation("followUps", fields: [parentId], references: [id])
   parentId         Int?
   QuestionInstance QuestionInstance[]
-  Session          Session?           @relation(fields: [sessionId], references: [id])
-  sessionId        Int?
+  Session          Session[]
+  markedForReview  Boolean            @default(true)
 }
 
 model Comment {
@@ -62,9 +62,10 @@ model Comment {
 model QuestionInstance {
   id         Int       @id @default(autoincrement())
   comments   Comment[]
-  ranBy      User?      @relation(fields: [userId], references: [id])
+  ranBy      User?     @relation(fields: [userId], references: [id])
   session    Session   @relation(fields: [sessionId], references: [id])
   passed     Boolean   @default(false)
+  rating     Int       @default(-1)
   userId     Int?
   sessionId  Int
   question   Question  @relation(fields: [questionId], references: [id])

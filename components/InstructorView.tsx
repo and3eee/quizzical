@@ -8,7 +8,7 @@ export default function InstructorView(props: {
 }) {
   return (
     <Paper>
-      <Stack>
+      <Stack align="center">
         <Title>Instructor Bay</Title>
         <Divider />
         <Stack>

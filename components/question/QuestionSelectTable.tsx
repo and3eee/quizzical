@@ -40,6 +40,7 @@ import { User } from "@prisma/client";
 import { useDisclosure } from "@mantine/hooks";
 import QuestionEditor from "./QuestionEdit";
 import QuestionLinkModal from "./QuestionLinkModal";
+import RatingButton from "./RatingButton";
 interface ThProps {
   children: React.ReactNode;
   reversed: boolean;
@@ -211,7 +212,7 @@ export default function QuestionSelectTable(props: {
     return (
       <Avatar.Group>
         {question.reviewedBy.map((user: User) => (
-          <Tooltip label={user.name}>
+          <Tooltip key={user.name} label={user.name}>
             <Avatar>
               {user.name.split(" ").map((value) => value.charAt(0))}
             </Avatar>
@@ -279,7 +280,7 @@ export default function QuestionSelectTable(props: {
       <Table.Td>
         <Group gap="xs">
           {question.tags.map((tag: string) => (
-            <Badge size="sm">{tag}</Badge>
+            <Badge key={tag} size="sm">{tag}</Badge>
           ))}
         </Group>
       </Table.Td>
@@ -290,6 +291,7 @@ export default function QuestionSelectTable(props: {
         <Group>
           {editDrawer(question)}
           <QuestionLinkModal question={question} options={props.questions} />
+      
         </Group>
       </Table.Td>
     </Table.Tr>

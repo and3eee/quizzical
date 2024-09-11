@@ -14,13 +14,14 @@ export interface Question {
   tags: string[];
   answer: string;
   level: number;
-  isCoreQuestion:boolean;
+
+  isCoreQuestion: boolean;
   reviewedBy?: User[];
-  reviewComments?:Comment[];
+  reviewComments?: Comment[];
   lastReviewed: Date;
   expectedMinutes?: number;
   followUps?: Question[];
-  parent?:Question
+  parent?: Question;
 }
 
 export interface Comment {
@@ -34,6 +35,7 @@ export interface QuestionInstance {
   id: number;
   question?: Question;
   comments: Comment[];
+  rating: number;
   ranBy: User;
   session?: Session;
   passed: boolean;
@@ -44,8 +46,6 @@ export interface User {
   tags?: string[];
 }
 
-
-export interface Template { 
-    id: number;
-
+export interface Template {
+  id: number;
 }

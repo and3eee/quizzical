@@ -36,7 +36,6 @@ export async function SetSessionQuestions(
   input: Session | any,
   selected: Question[]
 ) {
-  
   const dif_ids = selected
     .filter(
       (question: Question) =>
@@ -46,7 +45,14 @@ export async function SetSessionQuestions(
     )
     .map((question: Question) => {
       return {
-        questionId: question.id!,
+        where: {
+          sessionId_questionId: {
+            sessionId: input.id,
+            questionId: question.id!,
+          },
+        },
+        create: {
+          questionId: question.id!,},
       };
     });
 
@@ -62,8 +68,6 @@ export async function SetSessionQuestions(
           };
         })
     : [];
-    
- 
 
   const out = await prisma.session.update({
     where: { id: input.id },
@@ -75,7 +79,7 @@ export async function SetSessionQuestions(
         disconnect: removal,
       },
       QuestionInstance: {
-        createMany: { data: dif_ids },
+        connectOrCreate: dif_ids,
       },
     },
     include: { QuestionInstance: true },

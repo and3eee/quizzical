@@ -69,7 +69,7 @@ export default function QuestionLinkModal(props: {
           {filteredQuestion && (
             <Stack align="center">
               <Title order={3}>Related Questions</Title>
-              <ScrollArea h={650}>
+              <ScrollArea mah={650}>
                 <Stack gap="xs">
                 {filteredQuestion!.map((quest: Question) => (
                   <LinkCard

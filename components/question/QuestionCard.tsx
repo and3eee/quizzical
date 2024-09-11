@@ -22,20 +22,12 @@ export default function QuestionCard(props: {
   complete?: boolean;
   ranBy?: User;
 }) {
+  const assign = () => {};
 
-
-
-    const assign = () => {
-
-    }
-
-    const comment = () => {
-        
-    }
-
+  const comment = () => {};
 
   return (
-    <Card miw="20rem" radius="md" withBorder={props.complete} >
+    <Card mih="15rem" w="40rem"  withBorder={props.complete}>
       <Stack gap="sm">
         <Group justify="right">
           {props.question.isCoreQuestion && (
@@ -84,21 +76,23 @@ export default function QuestionCard(props: {
             </Badge>
           )}
 
-          {props.ranBy && <Avatar> {props.ranBy.name.split(" ").map((value) => value.charAt(0))}</Avatar>}
+          {props.ranBy && (
+            <Avatar>
+              {" "}
+              {props.ranBy.name.split(" ").map((value) => value.charAt(0))}
+            </Avatar>
+          )}
 
-          {!props.ranBy && props.attached  && <Button radius="lg"> Take it! </Button>}
+          {!props.ranBy && props.attached && (
+            <Button radius="lg"> Take it! </Button>
+          )}
         </Group>
 
-        <Group grow>
-          <Stack>
-            <Text c="dimmed"> Question</Text>{" "}
-            <Text>{props.question.content}</Text>
-          </Stack>
-
-          <Stack>
-            <Text c="dimmed"> Answer</Text> <Text>{props.question.answer}</Text>
-          </Stack>
-        </Group>
+        <Stack>
+          <Text c="dimmed"> Question</Text>{" "}
+          <Text>{props.question.content}</Text>
+          <Text c="dimmed"> Answer</Text> <Text>{props.question.answer}</Text>
+        </Stack>
       </Stack>
     </Card>
   );
